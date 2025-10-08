@@ -1,0 +1,32 @@
+Quartus Prime Archive log --	D:/FPGA/Altay_ex/old_game/retro_game_tmp_archive.qarlog
+
+Archive:	D:/FPGA/Altay_ex/old_game/retro_game_tmp_archive.qar
+Date:		Wed Oct  8 10:45:33 2025
+Quartus Prime		21.1.0 Build 842 10/21/2021 SJ Lite Edition
+
+	=========== Files Selected: ===========
+D:/FPGA/Altay_ex/old_game/RTL/line.sv
+D:/FPGA/Altay_ex/old_game/RTL/low_clock.sv
+D:/FPGA/Altay_ex/old_game/RTL/numbers.sv
+D:/FPGA/Altay_ex/old_game/RTL/retro_game.sv
+D:/FPGA/Altay_ex/old_game/RTL/text.sv
+D:/FPGA/Altay_ex/old_game/RTL/vga.sv
+D:/FPGA/Altay_ex/old_game/db/stp1_auto_stripped.stp
+D:/FPGA/Altay_ex/old_game/output_files/sprite.sv
+D:/FPGA/Altay_ex/old_game/output_files/stp1.stp
+D:/FPGA/Altay_ex/old_game/retro_game.out.sdc
+D:/FPGA/Altay_ex/old_game/retro_game.qpf
+D:/FPGA/Altay_ex/old_game/retro_game.qsf
+D:/FPGA/Altay_ex/old_game/retro_game.sv
+D:/FPGA/Altay_ex/old_game/rtl/letter.vh
+d:/intelfpga_lite/21.1/quartus/bin64/assignment_defaults.qdf
+	======= Total: 15 files to archive =======
+
+	================ Status: ===============
+All files archived successfully.
+
+
+******* Archived project restoration attempt on Wed Oct  8 10:45:35 2025
+Source archive file:	D:/FPGA/Altay_ex/old_game/retro_game_tmp_archive.qar
+Archive was extracted into	D:/FPGA/Altay_ex/old_game_copy/
+		 - successfully.
