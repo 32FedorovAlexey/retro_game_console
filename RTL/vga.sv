@@ -6,6 +6,7 @@
 module vga
           ( input clk,
             input rst,        // сигнал нужен для моделирования при имплементации можно установить в "0" 
+				output clk_pix,
             output h_sync,
 				output v_sync,
 				output [9:0] x,
@@ -37,7 +38,7 @@ module vga
     else if (~(pos_x == 10'd752)) 
         pos_x <= pos_x + 1'b1;
       else begin
-        pos_x <= pos_x + 223;
+        pos_x <= pos_x + 10'd223;
         if (pos_y == 10'd492)
           pos_y <= pos_y + 10'd499;
         else pos_y <= pos_y + 1'b1;  
@@ -57,5 +58,6 @@ module vga
 	 
     assign x = pos_x;
     assign y = pos_y;
+	 assign clk_pix = pix_clk;
   
 endmodule

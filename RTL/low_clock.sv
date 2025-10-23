@@ -18,12 +18,12 @@ module low_clock #(parameter F_CLK = 50000000, F_CLK_SLOW = 1)
     end  
     else begin 
       if (counter == 0) begin
-        counter <= N / 2;
+        counter <= N / 2'd2;
         slow <= ~slow;
         if (slow == 0) tik <= 1'b1;
      end  
       else begin 
-        counter <= counter - 1;
+        counter <= counter - 1'd1;
         tik <= 1'b0;
       end  
      end
