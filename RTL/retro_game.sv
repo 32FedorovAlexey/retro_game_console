@@ -1,6 +1,6 @@
 `include "sprite.vh"
-`define GAME
-//`define PYRAMID
+//`define GAME
+`define PYRAMID
 //`define ROTATE_LINE
 module retro_game  ( 
                     input  clk,
@@ -232,7 +232,7 @@ module retro_game  (
 						  .b(flyer_b)
 						 );	
  						 
- `endif						 
+					 
 /*	logic text_r, text_g, text_b;
 	
   text #(.L(14), 
@@ -255,7 +255,7 @@ module retro_game  (
 	 assign game_out_g = plane_g | flyer_g | bullet_g | shot_g | hit_g  | text1_g | text2_g ;
 	 assign game_out_b = plane_b | flyer_b | bullet_b | shot_b | hit_b  | text1_b | text2_b ;
 	 
- 
+ `endif	
    
 	wire   start_f = (x==0) & (y==0); 
 	
