@@ -28,11 +28,11 @@ module retro_game  (
 	
 	wire [9:0] x,y,clk_pix;
 	wire game_out_r, game_out_g,game_out_b;
-	logic tik;
+	logic tik, save_frame ;
 	
 	// задаем частоту просчета сцены
 	
-	 low_clock  #(.F_CLK_SLOW(20))
+	/* low_clock  #(.F_CLK_SLOW(20))
 
         low_clock_i 
                     (
@@ -41,26 +41,38 @@ module retro_game  (
                     .clk_slow(),
                     .one_pulse(tik)
                     );
+	*/
+
+    always_ff @(clk)
+    save_frame <= (x == 640) & (y==480);
+	 
+	 assign tik = save_frame & ((x == 640) & (y==480));    
+  	 
 
 	`ifdef GAME
 	
-	 localparam  speed_fly    = 10'd5;
-	 localparam  speed_plane  = 10'd2;
-	 localparam  speed_bullet = 10'd7;
+	 localparam  speed_fly    = 10'd1;
+	 localparam  speed_plane  = 10'd1;
+	 localparam  speed_bullet = 10'd3;
 	 
 	 
    
 	 reg        r,g,b;
 	 reg  [7:0] count_1, count_2;
 	 
+	
+	 reg  [2:0] fly_color= 3'b101; 
+	 
 	 
 // триггер попаданий
 	 reg        was_hit;  
-	 wire  crash = flyer_g & bullet_r ;
+	 wire  crash = (flyer_r |flyer_g | flyer_b) & bullet_r ;       // в черный	самолет не возможно попасть !!!
 	
    always_ff @(posedge clk) 
 	  if (tik) was_hit <= 1'b0;
 	  else if (crash) was_hit <= 1'b1;
+	
+	  
  	
 	// главный цикл геймплея
 	  
@@ -87,8 +99,13 @@ module retro_game  (
 		   //else 
 			
 			if (was_hit & bullet_mov) begin                  //снаряд встретился с кораблем пришельцев 
-			   count_2 <= count_2 + 1'd1;
-				if (count_2[3:0] == 4'h9)
+		  	fly_color <= fly_color + 1;                   // меняем цвет коробля пришельцев
+				if (fly_color== 3'b111)
+			     fly_color <= 3'b001;
+				else				
+			  
+				 count_2 <= count_2 + 1'd1;
+			 if (count_2[3:0] == 4'h9)
 			     count_2<= count_2 + 4'h7;	                // двоично-десятичная корекция 
 			end 			  
 			
@@ -226,7 +243,7 @@ module retro_game  (
 				        .y(y),
 				        .pos_x(f_x_pos),
 						  .pos_y(80),
-						  .collor(3'b010),
+						  .collor(fly_color),
 						  .r(flyer_r),
                     .g(flyer_g),
 						  .b(flyer_b)
@@ -264,8 +281,8 @@ module retro_game  (
 	logic lw1;
    logic signed [9 : 0] x1_d, x1 = 10'd100;
 	logic signed [9 : 0] y1_d, y1 = 10'd000;
-   logic [2 : 0] count_tik; 
-   localparam n_tik = 2;	
+   logic [8 : 0] count_tik; 
+   localparam n_tik = 10;	
  
     rotate rotate_5(
 	                  .x_i(x1),
@@ -287,14 +304,14 @@ module retro_game  (
  
 	line line_1(
 	            .clk(clk),
-					.rst(start_f),
+					.start_frame(start_f),
 					.x(x),
 					.y(y),
 					.x1(10'd150 ),
 					.x2(x1 + 10'd150),
 					.y1(10'd150),
 					.y2(y1 + 10'd150),
-					.white(lw1)
+					.out(lw1)
 					);					  
  
     `endif
@@ -317,10 +334,7 @@ module retro_game  (
    assign g_pin = game_out_g | lw1 | pyrm; 
    assign b_pin = game_out_b | lw1 | pyrm; 
   
- //  assign r_pin =  pyrm | flyer_r; 
- //  assign g_pin =  pyrm | flyer_g; 
- //  assign b_pin =  pyrm | flyer_b; 
-  
+
   
   
 endmodule 

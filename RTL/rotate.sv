@@ -1,4 +1,4 @@
-module rotate  #(parameter SIN = 89 , COS = 1020)
+module rotate  #(parameter SIN = 124 , COS = 1016) // SIN = 1024*sin(a) COS = 1024*COS(a) 
               ( input  signed [9 : 0] x_i,
                 input  signed [9 : 0] y_i,
                 output signed [9 : 0] x_o,

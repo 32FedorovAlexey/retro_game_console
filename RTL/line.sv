@@ -1,160 +1,148 @@
+module line
+# (
+    parameter  clk_mhz       = 50,
+               screen_width  = 640,
+               screen_height = 480,
+               w_x           = $clog2 ( screen_width  ),
+               w_y           = $clog2 ( screen_height )
+)
 
+(
+               input                        clk,
+               input                        start_frame,  
+               input        [w_x     - 1:0] x,
+               input        [w_y     - 1:0] y,
+               input        [w_x     - 1:0] x1,
+               input        [w_y     - 1:0] y1,
+               input        [w_x     - 1:0] x2,
+               input        [w_y     - 1:0] y2,
+               output                       out
 
-/*
+);
 
-I'm sorry, my English is not very good.
-*/
-//`define DEBUG 
-module line(
-            input clk,
-            input rst,
-            input [9:0] x,
-            input [9:0] y,
-            input [9:0] x1,
-            input [9:0] y1,
-            input [9:0] x2,
-            input [9:0] y2,
-            output      white
-            );
+   logic [w_x     - 1:0]  in_x1, in_x2,  dot_x, new_x;
+   logic signed [w_x     - 1:0] dx;
+   logic signed [w_y     - 1:0] dy;
+   logic [w_y     - 1:0]        in_y1, in_y2,  dot_y, new_y;
+   logic                        pred_x, strobe_x;
+   logic [w_x     - 1:0]        error, new_error;
+   logic                        en1,en2,en3,en4;
+   logic                        line_out;
+   logic                        s1,s2,s3,s4;
 
-  logic [9:0] dx, dy, new_x, new_y;
-  logic [9:0] x_start, save_start_x;                               // for 4 section 
-  logic [9:0] dot_x, dot_y, error, new_error;
-  logic [9:0] x1_in, y1_in, x2_in, y2_in;
-  
-  logic       sector1, sector2, sector3, sector4, run_s4;          // direction selecter 
-  logic       strob_x;
+   logic [w_x - 1:0]           x_st, x_end;
 
+   
+   //highlighting a change in the x value
  
-  wire revers = y1 > y2;
-  assign x1_in = revers ? x2 : x1; 
-  assign x2_in = revers ? x1 : x2; 
-  assign y1_in = revers ? y2 : y1; 
-  assign y2_in = revers ? y1 : y2; 
- 
-  
-  `ifdef DEBUG
-    wire tmp =  ((error + dx) < dx);
-  `endif
- 
- 
-  wire on = (y < y2_in) & (y >= y1_in);
-  
- 
-
-  assign work = (dot_x == x) & (dot_y == y);
-  
-  always_comb begin
-   new_error =  error;
-	 new_y     = dot_y;
-	 new_x     = dot_x;
-   case ({sector4,sector3,sector2,sector1})
-     4'b0001:       begin
-	  	                new_y     = ((error + dy) < dx) ? dot_y     : dot_y + 1;
-	                    new_error = ((error + dy) < dx) ? error + dy: error + dy - dx; 
-	                 end
-	  4'b0010:       begin
-                      new_x     = ((error + dx) < dy) ? dot_x     : dot_x + 1'b1 ;
-	                    new_error = ((error + dx) < dy) ? error + dx: error + dx - dy;
-                    end
-     4'b0100:       begin
-                      new_x     = ((error + dx) < dy) ? dot_x     : dot_x - 1'b1 ;
-	                    new_error = ((error + dx) < dy) ? error + dx: error + dx - dy;
-                    end
-     4'b1000:        begin
-	  	               new_y     = ((error + dy) < dx) ? dot_y     : dot_y +  1'd1;
-	                   new_error = ((error + dy) < dx) ? error + dy: error + dy - dx; 
-                    end
-   endcase 
-  end
-
-  
-  always_ff @(posedge clk) begin
-    if (rst) begin
-      dot_x <= x1_in;
-      dot_y <= y1_in;
-      error <='0;
-     
-
-      if ((x2_in - x1_in) >= (y2_in - y1_in)  & (x2_in > x1_in)) begin        // sector1 0 - 45   
-        sector1 <=1'b1;
-        dx <= x2_in - x1_in;
-        dy <= {(y2_in - y1_in)};
-      end  
-      else 
-      sector1 <=1'b0;
-      
-      if ((x2_in - x1_in) < (y2_in - y1_in) & (x2_in >= x1_in)) begin ;       // sector2 45-90
-		    //error <= '0;
-        sector2 <=1'b1;
-        dx <= {(x2_in - x1_in)};
-        dy <= (y2_in - y1_in);
-       end  
-      else 
-        sector2 <=1'b0;	
-
-      if ((x1_in - x2_in) <= (y2_in - y1_in) & (x2_in < x1_in)) begin         // sector3 90-135
-		    //error <= dx;
-        sector3 <=1'b1;
-        dx <= {(x1_in - x2_in)};
-        dy <= (y2_in - y1_in);
-      end  
-      else 
-        sector3 <=1'b0;
-		
-      if (((x1_in - x2_in) > (y2_in - y1_in)) & (x2_in < x1_in))  begin        // sector4 135-180
-        x_start <= x1_in;
-        save_start_x <= x1_in;
-        sector4 <=1'b1;
-        dx <= x1_in - x2_in;
-        dy <= {(y2_in - y1_in)}; 
-      end  
-      else 
-        sector4 <=1'b0;
-    end                                                   // end RESET section
-
-    // start WORK section 
-
-    if( work & strob_x & on) 
-      begin
-        error <= new_error; 
-        if (sector1) begin
-          dot_y <= new_y;
-          dot_x <= dot_x + 1'd1;
-        end
-        if (sector2 | sector3) begin
-          dot_y <= dot_y + 1'd1;
-		      dot_x <= new_x;
-        end
-    end
-
-     if (sector4 &  (y+1 == dot_y  ) & (y < y2_in)) begin  // for sector 4 
-       error   <= new_error;                               // Пока идет развертка строки считаем длинну линии 
-       x_start <= x_start - 1;
-       dot_y   <= new_y; 
-     end  
+   always_ff @(posedge clk)
+     pred_x <= x[0];
+   assign strobe_x = x ^ pred_x;
     
-     if (sector4 & (x == 640) & strob_x) begin             // в последней точке строки перед строкой с линией
-       dot_x <= save_start_x;
-       save_start_x <= x_start;                            // сохраняем начало линии      
-     end
+  // work permit
+  
+  assign en1 =  (y == dot_y) & (x == dot_x) & (x <= in_x2) & s1;
+  assign en2 =  (y == dot_y) & (x == dot_x) & (x <= in_x2) & (y <= in_y2) & s2;
+  assign en3 =  (y == dot_y) & (x == dot_x) & (x >  in_x2) & s3;
+  assign en4 =  (y + 1 >= in_y1) & (y < in_y2)  & s4;
+ 
+  // initializing variables 
+  
+   wire revers = y1 > y2;
+   assign in_x1 = revers ? x2 : x1; 
+   assign in_x2 = revers ? x1 : x2; 
+   assign in_y1 = revers ? y2 : y1; 
+   assign in_y2 = revers ? y1 : y2; 
 
-	  if (sector4 & (x == dot_x) & (dot_y == (y + 1))) dot_x <= x_start;
+   assign dx = (s1 | s2) ? (in_x2 - in_x1)  : (in_x1 - in_x2) ;
+   assign dy = (in_y2 - in_y1) + 1 ;                                 // 
+   
+   // identification sectors
+   always_comb begin
+     s1 = 1'b0;
+     s2 = 1'b0;
+     s3 = 1'b0;
+     s4 = 1'b0;
+     if (in_x2 >= in_x1)
+       if ((in_x2 - in_x1) > (in_y2 - in_y1)) s1 = 1'b1;     // x2 >= x1
+       else                                   s2 = 1'b1; 
+      else 
+       if ((in_x1 - in_x2) < (in_y2 - in_y1)) s3 = 1'b1;     // x2 < x1
+       else                                   s4 = 1'b1;                       
+   end  
 
+   // calculate error and new dot 
+   always_comb begin
+      new_y = dot_y;
+      new_x = dot_x;
+      new_error = error;
+      case ({s4,s3,s2,s1})
+      4'b0001:             if ((error + dy) > dx) begin             // sector 1
+                             new_error = error + dy -  dx;
+                             new_y     = dot_y + 1; 
+                           end  
+                           else 
+                             new_error = error + dy;
+                       
+      4'b0010,
+      4'b0100:            if ((error + dx) > dy) begin            // sectors 2, 3
+                             new_error = error + dx -  dy ;
+                             if(s2)
+                                new_x     = dot_x + 1;
+                             else 
+                                new_x     = dot_x - 1;
+                           end  
+                           else 
+                             new_error = error + dx;
+
+    4'b1000:              new_error = error + dy;                // sector 4
+                          
+     endcase                            
    end
 
+   always_ff @(posedge clk)
+     if (start_frame) begin
+       dot_x <= in_x1;
+       dot_y <= in_y1;
+       error <= '0;
+       x_end <= in_x1;                                         // for 4 sector 
+     end 
+     else begin
+      // sector 1 
+     if (en1) begin
+       dot_x <= dot_x + 1;
+       dot_y <= new_y;
+       error <= new_error; 
+      end
+     // sectors 2,3 
+      if (en2 | en3) begin
+        dot_x <= new_x;
+        dot_y <= dot_y + 1 ;
+        error <= new_error; 
+      end
+    // sector 4
+      if (en4) begin
+        if (error <= dx ) begin 
+          dot_x <= dot_x - 1;
+          error <= new_error;
+        end  
+        else if (x == screen_width) begin   
+         x_st  <= dot_x;
+         if (y + 1 == in_y1  )
+           x_end <= in_x1;
+         else 
+           x_end <= x_st;  
+         error <= error - dx ;      
+       end  
+    end
+   end 
 
-	
-	// выделяем переход к следующей точке
-  reg out, save_x;
-    always_ff @(posedge clk) begin
-      save_x  <= x[0];
-      strob_x <= save_x ^ x[0];
-      if (save_x ^ x[0]) out <=  work; // & on;                // x,y находятся в границах линии и dot_x == x и dot_y == x 
-    end   
+   always @(posedge clk)
+   if (strobe_x) line_out <= (x == dot_x) & (y == dot_y); 
+   
+   wire out4 = (x > x_st) & (x <= x_end) & (y >= in_y1) & (y <= in_y2);            
 
-    wire out4sec = sector4 & (x > save_start_x) & (x <= dot_x);
-  
-	assign white = out & (dot_y <= y2_in)   | (out4sec & (x2_in <= x));    // (x2 <= x) костыль , так как из-за ошибок округления можно убежать далеко
+   assign out = (s4)? out4 : line_out ;
 
- endmodule           
+endmodule
+

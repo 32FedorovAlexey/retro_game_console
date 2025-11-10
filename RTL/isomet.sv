@@ -6,11 +6,11 @@ module isomet (
                 output signed [9 : 0] y_o
 					);
 		
-		 localparam signed K = 10'd724;
+		 localparam signed K = 10'd362;
 
 		 wire signed [19:0] tmp = y_i * K; 			
 					
-       assign x_o = x_i + tmp[19:10];
-       assign y_o = z_i + tmp[19:10];
+       assign x_o = x_i + (10'(tmp[19:10])) ;
+       assign y_o = z_i - (10'(tmp[19:10])) ;
 		 
 endmodule
